@@ -29,18 +29,61 @@ app.post('/join_meeting', (req, res) => {
     const JOIN_MEETING_FAILURE = 1;
 
     if (meeting_id in meetings) {
-      res.json({ 
-        "result": JOIN_MEETING_SUCCESS,
-        "msg": "join meeting success" 
-      });
+        if (user_id in meetings[meeting_id].users) {
+            res.json({ 
+                "result": JOIN_MEETING_FAILURE,
+                "msg": `user "${user_id}" is already in meeting`
+            });
+        } else {
+            meetings[meeting_id].users[user_id] = {
+                video_on: false,
+                audio_on: false,
+                screen_on: false
+            };
+
+            res.json({ 
+                "result": JOIN_MEETING_SUCCESS,
+                "msg": `join meeting success`
+            });
+        }
     } else {
-      res.json({ 
-        "result": JOIN_MEETING_FAILURE,  
-        "msg": "join meeting failed" 
-      });
+        res.json({ 
+            "result": JOIN_MEETING_FAILURE,  
+            "msg": `meeting not exists: ${meeting_id}`            
+        });
     }
 });
 
+// 用户请求音视频权限
+app.post('/request_up_stream', (req, res) => {
+    const user_id = req.body.user_id;
+    const meeting_id = req.body.meeting_id;
+    const media_type = req.body.media_type;
+
+    const REQUEST_UP_STREAM_SUCCESS = 0;
+    const REQUEST_UP_STREAM_FAILURE = 1;
+
+    console.log(`request_up_stream: user_id: ${user_id}, meeting_id: ${meeting_id}, media_type: ${media_type}`);
+
+    if (meeting_id in meetings) {
+        if (user_id in meetings[meeting_id].users) {
+            res.json({ 
+                "result": REQUEST_UP_STREAM_SUCCESS,
+                "msg": "request up stream success" 
+            });
+      } else {
+        res.json({ 
+            "result": REQUEST_UP_STREAM_FAILURE,  
+            "msg": `user not exist: ${user_id}` 
+        });
+      }
+    } else {
+        res.json({ 
+            "result": REQUEST_UP_STREAM_FAILURE,  
+            "msg": `meeting not exists: ${meeting_id}`      
+        });
+    }
+});
 
 // 用户状态更新
 app.post('/user_status', (req, res) => {
