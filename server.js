@@ -37,8 +37,11 @@ app.post('/join_meeting', (req, res) => {
         } else {
             meetings[meeting_id].users[user_id] = {
                 video_on: false,
+                video_stream_id: "",
                 audio_on: false,
-                screen_on: false
+                audio_stream_id: "",
+                screen_on: false, 
+                screen_stream_id: ""
             };
 
             res.json({ 
@@ -85,12 +88,58 @@ app.post('/request_up_stream', (req, res) => {
     }
 });
 
+// 请求用户状态
+app.post('/request_user_status', (req, res) => {
+    const meeting_id = req.body.meeting_id;    
+    const REQUEST_USER_STATUS_SUCCESS = 0;
+    const REQUEST_USER_STATUS_FAILURE = 1;
+    if (meeting_id in meetings) {
+        res.json({ 
+            "result": REQUEST_USER_STATUS_SUCCESS,  
+            "msg": `request user status success`,
+            "user_list": meetings[meeting_id].users
+        });
+    } else {
+        res.json({ 
+            "result": REQUEST_USER_STATUS_FAILURE,  
+            "msg": `meeting not exists: ${meeting_id}`      
+        });
+    }
+});
+
 // 用户状态更新
 app.post('/user_status', (req, res) => {
-    const { meetingId, userId, status } = req.body;
-    // 更新用户状态逻辑
-    // ...
-    res.json({ message: 'Status updated' });
+    const { meeting_id, user_id, is_audio_on, is_video_on, is_screen_on, audio_stream_id, video_stream_id, screen_stream_id } = req.body;
+
+    const UPDATE_USER_STATUS_SUCCESS = 0; 
+    const UPDATE_USER_STATUS_MEETINGNOT_EXISTS = 1; 
+    const UPDATE_USER_STATUS_USEE_NOT_EXISTS = 2; 
+    if (meeting_id in meetings) {
+        if (user_id in meetings[meeting_id].users) {
+            var user = meetings[meeting_id].users[user_id]; 
+            user.is_audio_on = is_audio_on;
+            user.is_video_on = is_video_on;
+            user.is_screen_on = is_screen_on;
+            user.audio_stream_id = audio_stream_id;
+            user.video_stream_id = video_stream_id;
+            user.screen_stream_id = screen_stream_id;
+
+            res.json({ 
+                "result": UPDATE_USER_STATUS_SUCCESS,  
+                "msg": `update user status success ${user_id}`      
+            });
+        } else {
+            res.json({ 
+                "result": UPDATE_USER_STATUS_USEE_NOT_EXISTS,  
+                "msg": `user not exists: ${user_id}`      
+            });
+        }
+    } else {
+        res.json({ 
+            "result": UPDATE_USER_STATUS_MEETINGNOT_EXISTS,  
+            "msg": `meeting not exists: ${meeting_id}`      
+        });
+    }
 });
 
 // 启动服务器
