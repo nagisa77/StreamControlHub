@@ -36,11 +36,11 @@ app.post('/join_meeting', (req, res) => {
             });
         } else {
             meetings[meeting_id].users[user_id] = {
-                video_on: false,
+                is_video_on: false,
                 video_stream_id: "",
-                audio_on: false,
+                is_audio_on: false,
                 audio_stream_id: "",
-                screen_on: false, 
+                is_screen_on: false, 
                 screen_stream_id: ""
             };
 
